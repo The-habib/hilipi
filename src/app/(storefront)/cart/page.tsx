@@ -45,10 +45,7 @@ export default function CartPage() {
           note: note || undefined,
           items: items.map((item) => ({
             product_id: item.product_id,
-            product_name: item.product_name,
             quantity: item.quantity,
-            unit_price: item.price,
-            unit: item.unit,
           })),
         }),
       });

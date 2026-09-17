@@ -16,7 +16,10 @@ export default async function StorefrontLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header storeName={settings?.store_name ?? "EV Spare Parts"} />
+      <Header
+        storeName={settings?.store_name ?? "EV Spare Parts"}
+        whatsappNumber={settings?.whatsapp_number}
+      />
       <main className="flex-1">{children}</main>
       <Footer
         storeName={settings?.store_name}

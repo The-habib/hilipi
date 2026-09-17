@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +14,36 @@ interface CategoryPageProps {
 }
 
 export const revalidate = 30;
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: category } = await supabase
+    .from("categories")
+    .select("name, description")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
+
+  if (!category) {
+    return {
+      title: "Category Not Found",
+      description: "Requested electric vehicle spare parts category is unavailable.",
+    };
+  }
+
+  const desc = category.description || `Browse ${category.name} EV spare parts, conversion hardware, and components with wholesale pricing.`;
+
+  return {
+    title: `${category.name} Parts`,
+    description: desc,
+    openGraph: {
+      title: `${category.name} | EV Spare Parts Catalog`,
+      description: desc,
+    },
+  };
+}
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;

@@ -22,23 +22,67 @@ export async function POST(request: Request) {
     const whatsappNumber = settings?.whatsapp_number ?? "+1234567890";
     const currency = settings?.currency ?? "USD";
 
-    // 2. Calculate subtotal safely on the server
-    const subtotal = validatedData.items.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0
-    );
+    // 2. Fetch live product records from database for all requested items
+    const productIds = Array.from(new Set(validatedData.items.map((i) => i.product_id)));
+    const { data: dbProducts, error: productsError } = await supabase
+      .from("products")
+      .select("id, name, price, unit, minimum_quantity, is_active, stock_quantity")
+      .in("id", productIds);
 
+    if (productsError) {
+      console.error("Failed to fetch products for order validation:", productsError);
+      return NextResponse.json(
+        { error: "Unable to verify product catalog availability. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    const productMap = new Map((dbProducts || []).map((p) => [p.id, p]));
+
+    // 3. Verify that all products exist, are active, and meet minimum order quantity
+    let calculatedSubtotal = 0;
+    const resolvedItems = [];
+
+    for (const item of validatedData.items) {
+      const dbProduct = productMap.get(item.product_id);
+
+      if (!dbProduct || !dbProduct.is_active) {
+        return NextResponse.json(
+          { error: `Item "${item.product_id}" is no longer available or inactive in the catalog.` },
+          { status: 400 }
+        );
+      }
+
+      if (item.quantity < dbProduct.minimum_quantity) {
+        return NextResponse.json(
+          {
+            error: `Order quantity for "${dbProduct.name}" must be at least ${dbProduct.minimum_quantity} ${dbProduct.unit}(s). Requested: ${item.quantity}.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const unitPrice = Number(dbProduct.price);
+      const itemSubtotal = Math.round(unitPrice * item.quantity * 100) / 100;
+      calculatedSubtotal += itemSubtotal;
+
+      resolvedItems.push({
+        product_id: dbProduct.id,
+        product_name: dbProduct.name,
+        quantity: item.quantity,
+        unit: dbProduct.unit,
+        unit_price: unitPrice,
+        subtotal: itemSubtotal,
+      });
+    }
+
+    calculatedSubtotal = Math.round(calculatedSubtotal * 100) / 100;
+
+    // 4. Generate unique IDs and order number securely on the server
+    const orderId = crypto.randomUUID();
     const orderNumber = generateOrderNumber();
 
-    // 3. Prepare WhatsApp message content
-    const whatsappItems = validatedData.items.map((item) => ({
-      product_name: item.product_name,
-      quantity: item.quantity,
-      unit: item.unit,
-      unit_price: item.unit_price,
-      subtotal: item.unit_price * item.quantity,
-    }));
-
+    // 5. Prepare WhatsApp message content
     const whatsappPayload = {
       order_number: orderNumber,
       store_name: storeName,
@@ -46,59 +90,39 @@ export async function POST(request: Request) {
       customer_name: validatedData.customer_name,
       phone: validatedData.phone,
       address: validatedData.address,
-      note: validatedData.note,
-      items: whatsappItems,
-      subtotal,
+      note: validatedData.note ?? null,
+      items: resolvedItems,
+      subtotal: calculatedSubtotal,
     };
 
     const whatsappUrl = generateWhatsAppUrl(whatsappNumber, whatsappPayload);
 
-    // 4. Insert order in Supabase
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        order_number: orderNumber,
-        customer_name: validatedData.customer_name,
-        phone: validatedData.phone,
-        address: validatedData.address,
-        note: validatedData.note ?? null,
-        subtotal,
-        status: "pending",
-        whatsapp_message: whatsappUrl,
-      })
-      .select("id, order_number")
-      .single();
+    // 6. Execute atomic database transaction via create_order_atomic RPC
+    // Guarantees order header + order items commit together or rollback together
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("create_order_atomic", {
+      p_order_id: orderId,
+      p_order_number: orderNumber,
+      p_customer_name: validatedData.customer_name,
+      p_phone: validatedData.phone,
+      p_address: validatedData.address,
+      p_note: validatedData.note || "",
+      p_items: validatedData.items,
+      p_whatsapp_message: whatsappUrl,
+    });
 
-    if (orderError || !order) {
-      console.error("Failed to create order:", orderError);
+    if (rpcError || !rpcResult) {
+      console.error("Order transaction error:", rpcError);
+      const userMessage = rpcError?.message || "Could not complete order. Please try again.";
       return NextResponse.json(
-        { error: "Failed to create order: " + (orderError?.message || "Unknown error") },
-        { status: 500 }
+        { error: userMessage },
+        { status: 400 }
       );
-    }
-
-    // 5. Insert order items (preserving product_name and unit_price at time of order)
-    const orderItemsToInsert = validatedData.items.map((item) => ({
-      order_id: order.id,
-      product_id: item.product_id ?? null,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      subtotal: item.unit_price * item.quantity,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItemsToInsert);
-
-    if (itemsError) {
-      console.error("Failed to insert order items:", itemsError);
     }
 
     return NextResponse.json({
       success: true,
-      order_id: order.id,
-      order_number: order.order_number,
+      order_id: orderId,
+      order_number: orderNumber,
       whatsapp_url: whatsappUrl,
     });
   } catch (err: unknown) {
@@ -107,3 +131,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
+

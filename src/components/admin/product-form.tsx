@@ -6,8 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Upload, Zap } from "lucide-react";
+import { AlertCircle, CheckCircle2, Upload, Zap, Trash2, ArrowLeft } from "lucide-react";
+import { productSchema } from "@/lib/validations/product";
 import type { Category, Product } from "@/types/database.types";
+import Link from "next/link";
 
 interface ProductFormProps {
   categories: Category[];
@@ -32,8 +34,10 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgressMsg, setUploadProgressMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Auto-generate slug from name if creating new
   const handleNameChange = (val: string) => {
@@ -53,18 +57,55 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingImage(true);
     setError(null);
+    setUploadProgressMsg(null);
+
+    // 1. Strict MIME type check
+    const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      setError("Invalid file format. Only JPG, PNG, WEBP, and GIF images are permitted.");
+      e.target.value = "";
+      return;
+    }
+
+    // 2. Strict file size check (5MB maximum)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File size exceeds 5MB limit. Selected file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`);
+      e.target.value = "";
+      return;
+    }
+
+    // 3. Safe extension whitelist
+    const rawExt = file.name.split(".").pop()?.toLowerCase() || "";
+    const extMap: Record<string, string> = {
+      jpg: "jpg",
+      jpeg: "jpg",
+      png: "png",
+      webp: "webp",
+      gif: "gif",
+    };
+    const fileExt = extMap[rawExt];
+    if (!fileExt) {
+      setError("Invalid file extension. Please select a valid JPG, PNG, WEBP, or GIF image.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingImage(true);
+    setUploadProgressMsg("Uploading to storage...");
 
     try {
       const supabase = createClient();
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const fileName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("product-images")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type,
+        });
 
       if (uploadError) {
         throw uploadError;
@@ -75,35 +116,50 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         .getPublicUrl(filePath);
 
       setImageUrl(publicUrlData.publicUrl);
+      setUploadProgressMsg("Image uploaded successfully!");
+      setTimeout(() => setUploadProgressMsg(null), 3000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to upload image";
-      setError(`Image upload error: ${msg}. If RLS blocks upload, authenticate as admin first.`);
+      setError(`Image upload error: ${msg}. Make sure you are authenticated as an admin.`);
     } finally {
       setUploadingImage(false);
+      e.target.value = "";
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
     setSubmitting(true);
     setError(null);
-
-    const supabase = createClient();
+    setSuccessMsg(null);
 
     const payload = {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       sku: sku.trim().toUpperCase(),
-      category_id: categoryId || null,
+      category_id: categoryId ? categoryId : null,
       description: description.trim() || null,
       price: parseFloat(price) || 0,
       unit: unit.trim().toUpperCase() || "PIECE",
       minimum_quantity: Math.max(1, parseInt(minQty, 10) || 1),
       stock_quantity: Math.max(0, parseInt(stockQty, 10) || 0),
-      image_url: imageUrl || null,
+      image_url: imageUrl.trim() || null,
       is_featured: isFeatured,
       is_active: isActive,
     };
+
+    // Client-side Zod validation
+    const validation = productSchema.safeParse(payload);
+    if (!validation.success) {
+      const firstIssue = validation.error.issues[0];
+      setError(`${firstIssue.path.join(".")}: ${firstIssue.message}`);
+      setSubmitting(false);
+      return;
+    }
+
+    const supabase = createClient();
 
     try {
       if (isEditing && initialData) {
@@ -112,17 +168,43 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
           .update(payload)
           .eq("id", initialData.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          if (updateError.code === "23505") {
+            if (updateError.message.includes("sku")) {
+              throw new Error(`SKU "${payload.sku}" is already in use by another product. Please use a unique SKU.`);
+            }
+            if (updateError.message.includes("slug")) {
+              throw new Error(`Slug "${payload.slug}" is already in use by another product. Please use a unique slug.`);
+            }
+          }
+          throw updateError;
+        }
+
+        setSuccessMsg("Product updated successfully!");
       } else {
         const { error: insertError } = await supabase
           .from("products")
           .insert(payload);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          if (insertError.code === "23505") {
+            if (insertError.message.includes("sku")) {
+              throw new Error(`SKU "${payload.sku}" is already in use by another product. Please use a unique SKU.`);
+            }
+            if (insertError.message.includes("slug")) {
+              throw new Error(`Slug "${payload.slug}" is already in use by another product. Please use a unique slug.`);
+            }
+          }
+          throw insertError;
+        }
+
+        setSuccessMsg("Product created successfully!");
       }
 
-      router.push("/admin/products");
-      router.refresh();
+      setTimeout(() => {
+        router.push("/admin/products");
+        router.refresh();
+      }, 700);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save product";
       setError(msg);
@@ -131,7 +213,16 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <Link
+          href="/admin/products"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Products List
+        </Link>
+      </div>
+
       {error && (
         <div className="flex items-start gap-2 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
@@ -139,10 +230,17 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         </div>
       )}
 
+      {successMsg && (
+        <div className="flex items-center gap-2 p-4 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Main Details */}
         <div className="md:col-span-2 space-y-6">
-          <Card>
+          <Card className="shadow-sm">
             <CardContent className="p-6 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -189,7 +287,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 >
                   <option value="">Select Category...</option>
                   {categories.map((c) => (
@@ -209,14 +307,14 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Detailed voltage ratings, connector types, dimensions, thermal thresholds..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* Pricing & MOQ */}
-          <Card>
+          <Card className="shadow-sm">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-sm font-semibold uppercase text-muted-foreground">
                 Pricing & Wholesale Parameters
@@ -286,16 +384,30 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
         {/* Sidebar Settings (Image, Visibility) */}
         <div className="space-y-6">
-          <Card>
+          <Card className="shadow-sm">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-sm font-semibold uppercase text-muted-foreground">
                 Product Image
               </h3>
 
-              <div className="aspect-square rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div className="aspect-square rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden relative">
                 {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imageUrl} alt="Product preview" className="h-full w-full object-contain" />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt="Product preview"
+                      className="h-full w-full object-contain p-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl("")}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground shadow-sm transition-colors"
+                      title="Remove image"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </>
                 ) : (
                   <Zap className="h-12 w-12 text-muted-foreground/30" />
                 )}
@@ -303,30 +415,31 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground block">
-                  Upload file to Supabase Storage:
+                  Upload file to Supabase Storage (Max 5MB):
                 </label>
                 <div className="flex items-center gap-2">
-                  <label className="flex-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={uploadingImage}
-                      className="w-full gap-1.5 text-xs cursor-pointer"
-                      onClick={() => document.getElementById("image-upload-input")?.click()}
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      {uploadingImage ? "Uploading..." : "Select Image"}
-                    </Button>
-                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingImage}
+                    className="w-full gap-1.5 text-xs cursor-pointer"
+                    onClick={() => document.getElementById("image-upload-input")?.click()}
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    {uploadingImage ? "Uploading..." : imageUrl ? "Change Image" : "Upload Image"}
+                  </Button>
                   <input
                     id="image-upload-input"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleImageUpload}
                     className="hidden"
                   />
                 </div>
+                {uploadProgressMsg && (
+                  <p className="text-xs text-primary font-medium">{uploadProgressMsg}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -341,7 +454,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-sm font-semibold uppercase text-muted-foreground">
                 Catalog Visibility
@@ -376,7 +489,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
           </Card>
 
           <div className="flex flex-col gap-3">
-            <Button type="submit" disabled={submitting} className="w-full">
+            <Button type="submit" disabled={submitting || uploadingImage} className="w-full">
               {submitting ? "Saving..." : isEditing ? "Update Product" : "Create Product"}
             </Button>
             <Button

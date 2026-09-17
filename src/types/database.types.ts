@@ -7,6 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       admin_users: {
@@ -120,7 +124,7 @@ export type Database = {
           note: string | null
           order_number: string
           phone: string
-          status: "pending" | "confirmed" | "processing" | "completed" | "cancelled"
+          status: string
           subtotal: number
           updated_at: string
           whatsapp_message: string | null
@@ -133,7 +137,7 @@ export type Database = {
           note?: string | null
           order_number: string
           phone: string
-          status?: "pending" | "confirmed" | "processing" | "completed" | "cancelled"
+          status?: string
           subtotal: number
           updated_at?: string
           whatsapp_message?: string | null
@@ -146,7 +150,7 @@ export type Database = {
           note?: string | null
           order_number?: string
           phone?: string
-          status?: "pending" | "confirmed" | "processing" | "completed" | "cancelled"
+          status?: string
           subtotal?: number
           updated_at?: string
           whatsapp_message?: string | null
@@ -259,7 +263,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_order_atomic: {
+        Args: {
+          p_address: string
+          p_customer_name: string
+          p_items: Json
+          p_note: string
+          p_order_id: string
+          p_order_number: string
+          p_phone: string
+          p_whatsapp_message?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

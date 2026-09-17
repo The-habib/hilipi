@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,20 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get("redirect") || "/admin";
+  const urlError = searchParams.get("error");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    urlError === "unauthorized"
+      ? "Administrator privileges required. Please sign in with an authorized staff account."
+      : null
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +30,7 @@ export default function AdminLoginPage() {
     setError(null);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -33,7 +41,23 @@ export default function AdminLoginPage() {
       return;
     }
 
-    router.push("/admin");
+    // Verify admin role
+    if (authData.user) {
+      const { data: adminRecord, error: adminErr } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", authData.user.id)
+        .single();
+
+      if (adminErr || !adminRecord) {
+        await supabase.auth.signOut();
+        setError("Access denied: Your account is not registered as an administrator.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    router.push(redirectTarget);
     router.refresh();
   };
 
@@ -100,5 +124,13 @@ export default function AdminLoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[80vh] flex items-center justify-center">Loading login portal...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
