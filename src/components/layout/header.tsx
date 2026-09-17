@@ -21,7 +21,7 @@ interface HeaderProps {
 }
 
 export function Header({
-  storeName = "EV Spare Parts",
+  storeName = "HILIPI",
   whatsappNumber,
 }: HeaderProps) {
   const { itemCount } = useCart();

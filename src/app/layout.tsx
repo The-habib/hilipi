@@ -12,11 +12,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "EV Spare Parts Direct | Professional EV Components & Hardware",
-    template: "%s | EV Spare Parts Direct",
+    default: "HILIPI | Electric Vehicle Spares & Conversion Components",
+    template: "%s | HILIPI",
   },
   description:
-    "Quality electric vehicle spare parts, motor controllers, battery accessories, and conversion components with direct WhatsApp ordering.",
+    "HILIPI provides quality electric vehicle spare parts, motor controllers, battery accessories, and conversion components with direct WhatsApp ordering.",
+  openGraph: {
+    title: "HILIPI | Electric Vehicle Spares & Conversion Components",
+    description:
+      "Quality electric vehicle spare parts, motor controllers, battery accessories, and conversion components with direct WhatsApp ordering.",
+    siteName: "HILIPI",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

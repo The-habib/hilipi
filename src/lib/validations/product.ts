@@ -10,7 +10,12 @@ export const productSchema = z.object({
   unit: z.string().min(1, "Unit is required").default("PIECE"),
   minimum_quantity: z.number().int().min(1, "Minimum quantity must be at least 1").default(1),
   stock_quantity: z.number().int().min(0, "Stock quantity cannot be negative").default(0),
-  image_url: z.string().url("Invalid image URL").nullable().optional(),
+  image_url: z
+    .string()
+    .url("Invalid image URL")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
   is_featured: z.boolean().default(false),
   is_active: z.boolean().default(true),
 });

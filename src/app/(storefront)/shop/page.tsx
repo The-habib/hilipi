@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { Zap, Search, ArrowRight, Package } from "lucide-react";
+import { Zap, Search, ArrowRight, Package, MessageSquare } from "lucide-react";
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -62,11 +62,15 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const { data: settings } = await supabase
     .from("store_settings")
-    .select("currency")
+    .select("currency, store_name, whatsapp_number")
     .limit(1)
     .single();
 
   const currency = settings?.currency || "USD";
+  const storeName = settings?.store_name || "HILIPI";
+  const cleanPhone = settings?.whatsapp_number
+    ? settings.whatsapp_number.replace(/[^0-9]/g, "")
+    : null;
 
   return (
     <div className="container py-8 space-y-8">
@@ -253,18 +257,37 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           ) : (
             <Card className="p-12 text-center space-y-4">
               <Package className="h-10 w-10 text-muted-foreground/30 mx-auto" />
-              <div className="space-y-1">
-                <h3 className="font-semibold text-base">No Components Found</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              <div className="space-y-1.5">
+                <h3 className="font-semibold text-base">
                   {query
-                    ? `No products matched "${query}". Check your spelling or search for another term.`
-                    : "No products currently available in this category."}
+                    ? "No Matching Components"
+                    : categorySlug
+                    ? "Category In Preparation"
+                    : "Catalog Is Being Prepared"}
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  {query
+                    ? `No components matched "${query}". Check your spelling or try another search term.`
+                    : categorySlug
+                    ? "Products in this category will be available here soon. Inquire directly on WhatsApp for stock verification."
+                    : "Products will be available here soon. We are currently indexing our EV spare parts catalog. Reach out directly on WhatsApp for component inquiries."}
                 </p>
               </div>
-              <div>
-                <Link href="/shop">
-                  <Button variant="outline" size="sm">
-                    View All Parts
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                {cleanPhone && (
+                  <a
+                    href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20am%20inquiring%20about%20a%20specific%20EV%20spare%20part.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="whatsapp" size="sm" className="gap-2 text-xs">
+                      <MessageSquare className="h-4 w-4" /> Inquire on WhatsApp
+                    </Button>
+                  </a>
+                )}
+                <Link href={query || categorySlug ? "/shop" : "/"}>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    {query || categorySlug ? "View All Categories" : "Return to Homepage"}
                   </Button>
                 </Link>
               </div>

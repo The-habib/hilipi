@@ -75,7 +75,7 @@ function LoginForm() {
           <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <ShieldCheck className="h-6 w-6" />
           </div>
-          <CardTitle className="text-xl">Staff & Admin Portal</CardTitle>
+          <CardTitle className="text-xl">HILIPI Staff & Admin</CardTitle>
           <CardDescription className="text-xs break-words max-w-[240px] mx-auto">
             Authenticate with your verified Supabase staff credentials
           </CardDescription>
@@ -98,7 +98,7 @@ function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@yourstore.com"
+                placeholder="admin@hilipi.com"
                 className="w-full min-w-0"
               />
             </div>

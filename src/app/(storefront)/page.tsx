@@ -52,7 +52,7 @@ export default async function HomePage() {
     .single();
 
   const currency = settings?.currency || "USD";
-  const storeName = settings?.store_name || "EV Spare Parts Store";
+  const storeName = settings?.store_name || "HILIPI";
   const whatsappNumber = settings?.whatsapp_number;
   const cleanPhone = whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : null;
 
@@ -69,15 +69,15 @@ export default async function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 <Zap className="h-3.5 w-3.5 fill-current" />
-                <span>Commercial Electric Vehicle Spares</span>
+                <span>Electric Vehicle Spares & Components</span>
               </div>
 
               <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
-                Electric Vehicle <span className="text-primary block sm:inline">Motors, Controllers</span> & Replacement Hardware.
+                <span className="text-primary">{storeName}</span> — Electric Vehicle Spares & Replacement Hardware.
               </h1>
 
-              <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                Commercial-grade spares for EV fleet operators, conversion workshops, and repair technicians. Select components online and confirm stock directly via WhatsApp.
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl">
+                A simple catalog and direct WhatsApp ordering experience for electric vehicle components, motor controllers, battery accessories, and replacement parts.
               </p>
 
               {/* Action Buttons */}
@@ -95,7 +95,7 @@ export default async function HomePage() {
                     rel="noopener noreferrer"
                   >
                     <Button variant="whatsapp" size="lg" className="gap-2 h-11 px-6 font-semibold shadow-sm">
-                      <MessageSquare className="h-4 w-4" /> Order via WhatsApp
+                      <MessageSquare className="h-4 w-4" /> Inquire on WhatsApp
                     </Button>
                   </a>
                 )}
@@ -105,15 +105,15 @@ export default async function HomePage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Wholesale MOQ Parameters</span>
+                  <span>Direct WhatsApp Desk</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Direct Desk Dispatch</span>
+                  <span>Commercial Specifications</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Technical Verification</span>
+                  <span>Trade & Workshop Inquiries</span>
                 </div>
               </div>
             </div>
@@ -178,41 +178,56 @@ export default async function HomePage() {
                   </div>
                 </Card>
               ) : (
-                /* Neutral Clean Procurement Card if catalog is empty */
+                /* Elegant Launch Preparation Card if catalog is empty */
                 <Card className="border shadow-md bg-card overflow-hidden">
                   <div className="p-4 bg-muted/40 border-b flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-primary inline-block" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" />
                       <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Parts Procurement
+                        {storeName} Catalog Desk
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[10px]">Direct Desk</Badge>
+                    <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                      Preparing Launch
+                    </Badge>
                   </div>
 
                   <div className="p-6 space-y-4">
                     <div className="aspect-video rounded-lg border bg-muted/30 flex flex-col items-center justify-center p-6 text-center space-y-2">
                       <Boxes className="h-12 w-12 text-primary/40" />
                       <span className="text-xs font-semibold text-muted-foreground">
-                        B2B Bill of Materials Ordering
+                        EV Component & Hardware Catalog
                       </span>
                     </div>
 
                     <div className="space-y-1.5">
                       <h2 className="font-bold text-base text-foreground">
-                        Wholesale & Fleet Dispatch
+                        Catalog Is Being Prepared
                       </h2>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Add items from our catalog to compile your bill of materials. Orders are submitted directly to our dispatch desk via WhatsApp for stock verification.
+                        Products will be available here soon. We are organizing our initial catalog of EV spares, motor controllers, and replacement hardware. Submit part specifications directly to our WhatsApp desk.
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t flex items-center justify-between">
-                      <Link href="/shop" className="w-full">
-                        <Button size="sm" variant="outline" className="w-full gap-1 text-xs">
-                          Browse Parts Catalog <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </Link>
+                    <div className="pt-2 border-t flex flex-col sm:flex-row items-center gap-2">
+                      {cleanPhone ? (
+                        <a
+                          href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20have%20an%20inquiry%20regarding%20EV%20spare%20parts.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                        >
+                          <Button size="sm" variant="whatsapp" className="w-full gap-1.5 text-xs font-semibold">
+                            <MessageSquare className="h-3.5 w-3.5" /> Inquire via WhatsApp
+                          </Button>
+                        </a>
+                      ) : (
+                        <Link href="/shop" className="w-full">
+                          <Button size="sm" variant="outline" className="w-full gap-1 text-xs">
+                            Browse Parts Catalog <ArrowRight className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -296,10 +311,23 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <Card className="p-8 text-center bg-card border-dashed">
-            <p className="text-xs text-muted-foreground">
-              Categories are being configured. Visit the full catalog to browse available components.
+          <Card className="p-8 text-center bg-card border space-y-3">
+            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Component categories are currently being organized for launch. Looking for a specific motor, controller, battery accessory, or conversion part? Reach out directly to {storeName} on WhatsApp.
             </p>
+            {cleanPhone && (
+              <div>
+                <a
+                  href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20have%20an%20inquiry%20regarding%20parts%20availability.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="sm" className="gap-2 text-xs">
+                    <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> Inquire on WhatsApp
+                  </Button>
+                </a>
+              </div>
+            )}
           </Card>
         )}
       </section>

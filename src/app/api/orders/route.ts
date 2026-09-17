@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       .limit(1)
       .single();
 
-    const storeName = settings?.store_name ?? "EV Spare Parts Direct";
-    const whatsappNumber = settings?.whatsapp_number ?? "+1234567890";
+    const storeName = settings?.store_name ?? "HILIPI";
+    const whatsappNumber = settings?.whatsapp_number ?? "+91 89276 81165";
     const currency = settings?.currency ?? "USD";
 
     // 2. Fetch live product records from database for all requested items

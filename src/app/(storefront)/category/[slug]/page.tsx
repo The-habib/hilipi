@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
-import { Zap, ArrowLeft } from "lucide-react";
+import { Zap, ArrowLeft, Package, MessageSquare } from "lucide-react";
 
 interface CategoryPageProps {
   params: Promise<{
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     title: `${category.name} Parts`,
     description: desc,
     openGraph: {
-      title: `${category.name} | EV Spare Parts Catalog`,
+      title: `${category.name} | HILIPI Catalog`,
       description: desc,
     },
   };
@@ -66,11 +66,15 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const { data: settings } = await supabase
     .from("store_settings")
-    .select("currency")
+    .select("currency, store_name, whatsapp_number")
     .limit(1)
     .single();
 
   const currency = settings?.currency || "USD";
+  const storeName = settings?.store_name || "HILIPI";
+  const cleanPhone = settings?.whatsapp_number
+    ? settings.whatsapp_number.replace(/[^0-9]/g, "")
+    : null;
 
   return (
     <div className="container py-8 space-y-8">
@@ -137,15 +141,31 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           ))}
         </div>
       ) : (
-        <Card className="p-12 text-center">
-          <Zap className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-          <h3 className="font-semibold text-lg">No Products in this Category</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            There are currently no active products in this category.
-          </p>
-          <div className="mt-4">
-            <Link href="/shop">
-              <Button variant="outline">Browse Other Categories</Button>
+        <Card className="p-10 text-center max-w-md mx-auto space-y-4">
+          <Package className="h-10 w-10 text-muted-foreground/30 mx-auto" />
+          <div className="space-y-1.5">
+            <h3 className="font-semibold text-base">Catalog Is Being Prepared</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Components in {category.name} are currently being prepared for launch. Products will be available here soon.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+            {cleanPhone && (
+              <a
+                href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20am%20inquiring%20about%20parts%20in%20the%20${encodeURIComponent(category.name)}%20category.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button variant="whatsapp" size="sm" className="w-full gap-2 text-xs">
+                  <MessageSquare className="h-4 w-4" /> Inquire on WhatsApp
+                </Button>
+              </a>
+            )}
+            <Link href="/shop" className="w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full text-xs">
+                Browse Full Catalog
+              </Button>
             </Link>
           </div>
         </Card>

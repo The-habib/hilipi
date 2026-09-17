@@ -1,20 +1,23 @@
 import Link from "next/link";
-import { Zap, Phone, Mail, MapPin } from "lucide-react";
+import { Zap, Phone, Mail, MapPin, MessageSquare } from "lucide-react";
 
 interface FooterProps {
   storeName?: string;
+  whatsappNumber?: string | null;
   phone?: string | null;
   email?: string | null;
   address?: string | null;
 }
 
 export function Footer({
-  storeName = "EV Spare Parts Store",
+  storeName = "HILIPI",
+  whatsappNumber,
   phone,
   email,
   address,
 }: FooterProps) {
-  const hasContactInfo = Boolean(phone || email || address);
+  const cleanPhone = whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : null;
+  const hasContactInfo = Boolean(whatsappNumber || phone || email || address);
 
   return (
     <footer className="border-t bg-muted/20">
@@ -66,6 +69,23 @@ export function Footer({
             </h4>
             {hasContactInfo ? (
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                {whatsappNumber && (
+                  <li className="flex items-center gap-2">
+                    <MessageSquare className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    {cleanPhone ? (
+                      <a
+                        href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20have%20an%20inquiry.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-foreground transition-colors font-medium text-foreground"
+                      >
+                        WhatsApp: {whatsappNumber}
+                      </a>
+                    ) : (
+                      <span>WhatsApp: {whatsappNumber}</span>
+                    )}
+                  </li>
+                )}
                 {phone && (
                   <li className="flex items-center gap-2">
                     <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -87,7 +107,7 @@ export function Footer({
               </ul>
             ) : (
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Contact information can be configured by staff in the Admin Settings panel. Submit order inquiries directly through the cart.
+                Contact information can be configured by staff in the Admin Settings panel. Inquire directly via WhatsApp.
               </p>
             )}
           </div>

@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     title: product.name,
     description: desc,
     openGraph: {
-      title: `${product.name} | EV Spare Parts`,
+      title: `${product.name} | HILIPI`,
       description: desc,
       images: product.image_url ? [{ url: product.image_url }] : [],
     },
@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .single();
 
   const currency = settings?.currency || "USD";
-  const storeName = settings?.store_name || "EV Spare Parts Direct";
+  const storeName = settings?.store_name || "HILIPI";
   const cleanPhone = settings?.whatsapp_number
     ? settings.whatsapp_number.replace(/[^0-9]/g, "")
     : null;

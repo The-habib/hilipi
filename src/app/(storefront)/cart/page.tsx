@@ -239,7 +239,7 @@ export default function CartPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. +1 555 123 4567"
+                    placeholder="e.g. +91 89276 81165"
                     className="text-xs h-9"
                   />
                 </div>

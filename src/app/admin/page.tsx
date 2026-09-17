@@ -55,7 +55,7 @@ export default async function AdminDashboardPage() {
       {/* Header & Quick Navigation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin Overview</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{settings?.store_name || "HILIPI"} Overview</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Real-time catalog metrics, inventory status, and incoming customer dispatch orders
           </p>
@@ -161,76 +161,120 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* First-Time Store Setup Checklist (Displayed when catalog is empty) */}
+      {/* First-Time Store Setup Flow (Displayed when catalog has 0 products) */}
       {(!totalProducts || totalProducts === 0) && (
-        <Card className="border-primary/20 bg-primary/5 shadow-sm">
-          <CardHeader className="pb-3 border-b border-primary/10">
-            <div className="flex items-center justify-between">
+        <Card className="border-primary/30 bg-primary/5 shadow-sm overflow-hidden">
+          <CardHeader className="pb-4 border-b border-primary/10 bg-primary/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" /> Store Setup & Launch Guide
-                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <CardTitle className="text-lg font-bold text-foreground">
+                    HILIPI is ready to be configured.
+                  </CardTitle>
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Welcome to your EV Parts store administration. Follow these steps to prepare your catalog for public launch.
+                  Follow this simple 5-step setup flow to prepare your store and begin receiving customer orders.
                 </p>
               </div>
-              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
-                Initial Setup
+              <Badge variant="outline" className="border-primary/40 text-primary bg-background text-xs font-semibold self-start sm:self-auto">
+                Ready for Setup
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">1</span>
-                    Store Settings
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {/* STEP 1 */}
+              <div className="space-y-3 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-bold">1</span>
+                    STEP 1
                   </div>
-                  <h4 className="text-sm font-semibold">Configure WhatsApp & Currency</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Ensure your official WhatsApp order receiving number and default trading currency are configured.
+                  <h4 className="text-sm font-semibold text-foreground">Complete store information</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Verify WhatsApp number, support contact details, and currency.
                   </p>
                 </div>
                 <Link href="/admin/settings" className="pt-2">
-                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
-                    <Settings className="h-3.5 w-3.5" /> Configure Settings
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 h-8">
+                    <Settings className="h-3.5 w-3.5" /> Store Settings
                   </Button>
                 </Link>
               </div>
 
-              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">2</span>
-                    Categories ({totalCategories ?? 0} created)
+              {/* STEP 2 */}
+              <div className="space-y-3 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-bold">2</span>
+                    STEP 2
                   </div>
-                  <h4 className="text-sm font-semibold">Organize Component Groups</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Create parts categories (e.g., Motors, Controllers, Batteries) so customers can filter your catalog easily.
+                  <h4 className="text-sm font-semibold text-foreground">Create product categories</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Set up categories ({totalCategories ?? 0} created) to group your EV hardware.
                   </p>
                 </div>
                 <Link href="/admin/categories" className="pt-2">
-                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
-                    <FolderTree className="h-3.5 w-3.5" /> Manage Categories
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 h-8">
+                    <FolderTree className="h-3.5 w-3.5" /> Add Categories
                   </Button>
                 </Link>
               </div>
 
-              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">3</span>
-                    Add First Product
+              {/* STEP 3 */}
+              <div className="space-y-3 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-bold">3</span>
+                    STEP 3
                   </div>
-                  <h4 className="text-sm font-semibold">Upload Image, MOQ & Pricing</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Add your genuine EV components with technical specs, upload product imagery, set wholesale MOQ, and publish.
+                  <h4 className="text-sm font-semibold text-foreground">Add products</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Add parts with photos, pricing, minimum order quantity, and specs.
                   </p>
                 </div>
                 <Link href="/admin/products/new" className="pt-2">
-                  <Button size="sm" className="w-full text-xs gap-1.5 shadow-sm">
-                    <Plus className="h-3.5 w-3.5" /> Create Product
+                  <Button size="sm" className="w-full text-xs gap-1.5 h-8 shadow-sm">
+                    <Plus className="h-3.5 w-3.5" /> Add Product
+                  </Button>
+                </Link>
+              </div>
+
+              {/* STEP 4 */}
+              <div className="space-y-3 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center text-xs font-bold">4</span>
+                    STEP 4
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Publish products</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Review and activate products so they appear live on your storefront.
+                  </p>
+                </div>
+                <Link href="/admin/products" className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 h-8">
+                    <Package className="h-3.5 w-3.5" /> View Products
+                  </Button>
+                </Link>
+              </div>
+
+              {/* STEP 5 */}
+              <div className="space-y-3 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="flex h-5 w-5 rounded-full bg-emerald-600 text-white items-center justify-center text-xs font-bold">5</span>
+                    STEP 5
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Start receiving orders</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Customer orders and inquiries arrive directly on WhatsApp and in Orders.
+                  </p>
+                </div>
+                <Link href="/admin/orders" className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 h-8">
+                    <ShoppingBag className="h-3.5 w-3.5" /> View Orders
                   </Button>
                 </Link>
               </div>
