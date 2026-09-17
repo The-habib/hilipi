@@ -2,14 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2, Upload, Zap, Trash2, ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Upload,
+  Zap,
+  Trash2,
+  ArrowLeft,
+  Info,
+  DollarSign,
+  Boxes,
+  Image as ImageIcon,
+  FileText,
+  Eye,
+} from "lucide-react";
 import { productSchema } from "@/lib/validations/product";
 import type { Category, Product } from "@/types/database.types";
-import Link from "next/link";
 
 interface ProductFormProps {
   categories: Category[];
@@ -87,7 +100,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
     };
     const fileExt = extMap[rawExt];
     if (!fileExt) {
-      setError("Invalid file extension. Please select a valid JPG, PNG, WEBP, or GIF image.");
+      setError("Invalid file extension. Please select a valid image file.");
       e.target.value = "";
       return;
     }
@@ -238,10 +251,16 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Main Details */}
+        {/* Main Details: Sections 1, 2, 3, 5 */}
         <div className="md:col-span-2 space-y-6">
+          {/* SECTION 1: BASIC INFORMATION */}
           <Card className="shadow-sm">
-            <CardContent className="p-6 space-y-4">
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Info className="h-4 w-4 text-primary" /> 1. Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase text-muted-foreground">
                   Product Name *
@@ -297,29 +316,17 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                   ))}
                 </select>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Description & Specifications
-                </label>
-                <textarea
-                  rows={4}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detailed voltage ratings, connector types, dimensions, thermal thresholds..."
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                />
-              </div>
             </CardContent>
           </Card>
 
-          {/* Pricing & MOQ */}
+          {/* SECTION 2: PRICING & MOQS */}
           <Card className="shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-                Pricing & Wholesale Parameters
-              </h3>
-
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-primary" /> 2. Pricing & Wholesale Parameters
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -337,7 +344,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase text-muted-foreground">
-                    Unit Type *
+                    Unit of Sale *
                   </label>
                   <Input
                     required
@@ -348,48 +355,85 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase text-muted-foreground">
-                    Minimum Order Qty (MOQ) *
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    required
-                    value={minQty}
-                    onChange={(e) => setMinQty(e.target.value)}
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    The cart enforces that customers cannot order fewer than this amount.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase text-muted-foreground">
-                    Available Stock Qty
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    required
-                    value={stockQty}
-                    onChange={(e) => setStockQty(e.target.value)}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
+                  Minimum Order Quantity (MOQ) *
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  required
+                  value={minQty}
+                  onChange={(e) => setMinQty(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Customers in the storefront cannot add fewer than this number of units to their cart.
+                </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* SECTION 3: INVENTORY */}
+          <Card className="shadow-sm">
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Boxes className="h-4 w-4 text-primary" /> 3. Inventory & Availability
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
+                  Available Stock Quantity
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  required
+                  value={stockQty}
+                  onChange={(e) => setStockQty(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Setting this to 0 marks the product as &quot;Out of Stock&quot; and prevents customer ordering.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SECTION 5: CONTENT & SPECS */}
+          <Card className="shadow-sm">
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> 5. Content & Technical Specifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-2">
+              <label className="text-xs font-semibold uppercase text-muted-foreground block">
+                Technical Specifications & Notes
+              </label>
+              <textarea
+                rows={5}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={"Rated Voltage: 72V\nPeak Power: 3000W\nBrake Compatibility: Disc Brake\nConnector Type: Waterproof 9-Pin"}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-sm font-mono transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Tip: Enter key specifications using &quot;Label: Value&quot; format on each line to render an automated technical specification table on the storefront.
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar Settings (Image, Visibility) */}
+        {/* Sidebar: Sections 4 & 6 */}
         <div className="space-y-6">
+          {/* SECTION 4: MEDIA */}
           <Card className="shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-                Product Image
-              </h3>
-
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" /> 4. Media & Imagery
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
               <div className="aspect-square rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden relative">
                 {imageUrl ? (
                   <>
@@ -415,7 +459,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground block">
-                  Upload file to Supabase Storage (Max 5MB):
+                  Upload file (Max 5MB):
                 </label>
                 <div className="flex items-center gap-2">
                   <Button
@@ -427,7 +471,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                     onClick={() => document.getElementById("image-upload-input")?.click()}
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    {uploadingImage ? "Uploading..." : imageUrl ? "Change Image" : "Upload Image"}
+                    {uploadingImage ? "Uploading..." : imageUrl ? "Replace Image" : "Upload Image"}
                   </Button>
                   <input
                     id="image-upload-input"
@@ -454,49 +498,56 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
             </CardContent>
           </Card>
 
+          {/* SECTION 6: VISIBILITY */}
           <Card className="shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-                Catalog Visibility
-              </h3>
-
-              <label className="flex items-center gap-3 cursor-pointer">
+            <CardHeader className="p-4 border-b">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" /> 6. Catalog Visibility
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-input text-primary"
+                  className="h-4 w-4 rounded border-input text-primary mt-0.5"
                 />
                 <div>
-                  <span className="text-sm font-medium">Active / Published</span>
-                  <p className="text-xs text-muted-foreground">Visible to customers in storefront</p>
+                  <span className="text-xs font-semibold block text-foreground">Active in Storefront</span>
+                  <p className="text-[11px] text-muted-foreground">Uncheck to hide this part from public view</p>
                 </div>
               </label>
 
-              <label className="flex items-center gap-3 cursor-pointer border-t pt-3">
+              <label className="flex items-start gap-3 cursor-pointer border-t pt-3">
                 <input
                   type="checkbox"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="h-4 w-4 rounded border-input text-primary"
+                  className="h-4 w-4 rounded border-input text-primary mt-0.5"
                 />
                 <div>
-                  <span className="text-sm font-medium">Featured Item</span>
-                  <p className="text-xs text-muted-foreground">Highlighted on store homepage</p>
+                  <span className="text-xs font-semibold block text-foreground">Featured Component</span>
+                  <p className="text-[11px] text-muted-foreground">Show in the homepage featured parts grid</p>
                 </div>
               </label>
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-3">
-            <Button type="submit" disabled={submitting || uploadingImage} className="w-full">
-              {submitting ? "Saving..." : isEditing ? "Update Product" : "Create Product"}
+          {/* Form Submit & Cancel */}
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              type="submit"
+              disabled={submitting || uploadingImage}
+              className="w-full h-10 font-semibold"
+            >
+              {submitting ? "Saving Product..." : isEditing ? "Save Changes" : "Publish Product"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => router.push("/admin/products")}
-              className="w-full"
+              className="w-full text-xs h-9"
             >
               Cancel
             </Button>
