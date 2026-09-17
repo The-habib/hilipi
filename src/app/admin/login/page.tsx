@@ -62,59 +62,60 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="w-full max-w-md space-y-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Storefront
-        </Link>
+    <div className="w-full max-w-full sm:max-w-sm min-w-0 space-y-6">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to Storefront
+      </Link>
 
-        <Card className="border-primary/20 shadow-lg">
-          <CardHeader className="text-center space-y-2">
-            <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-              <ShieldCheck className="h-6 w-6" />
+      <Card className="w-full max-w-full sm:max-w-sm border-primary/20 shadow-lg overflow-hidden">
+        <CardHeader className="text-center space-y-2 p-5 sm:p-8">
+          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <ShieldCheck className="h-6 w-6" />
+          </div>
+          <CardTitle className="text-xl">Staff & Admin Portal</CardTitle>
+          <CardDescription className="text-xs break-words max-w-[240px] mx-auto">
+            Authenticate with your verified Supabase staff credentials
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-5 sm:p-6 pt-0 space-y-4">
+          {error && (
+            <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-xs">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-            <CardTitle className="text-xl">Staff & Admin Portal</CardTitle>
-            <CardDescription className="text-xs">
-              Authenticate with your verified Supabase staff credentials
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-xs">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
+          )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@yourstore.com"
-                />
-              </div>
+          <form onSubmit={handleLogin} className="space-y-4 w-full min-w-0">
+            <div className="space-y-1.5 w-full min-w-0">
+              <label className="text-xs font-semibold uppercase text-muted-foreground">
+                Email
+              </label>
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@yourstore.com"
+                className="w-full min-w-0"
+              />
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  Password
-                </label>
-                <Input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
+            <div className="space-y-1.5 w-full min-w-0">
+              <label className="text-xs font-semibold uppercase text-muted-foreground">
+                Password
+              </label>
+              <Input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full min-w-0"
+              />
+            </div>
 
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Authenticating..." : "Sign In to Dashboard"}
@@ -123,7 +124,6 @@ function LoginForm() {
           </CardContent>
         </Card>
       </div>
-    </div>
   );
 }
 

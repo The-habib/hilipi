@@ -161,6 +161,84 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
+      {/* First-Time Store Setup Checklist (Displayed when catalog is empty) */}
+      {(!totalProducts || totalProducts === 0) && (
+        <Card className="border-primary/20 bg-primary/5 shadow-sm">
+          <CardHeader className="pb-3 border-b border-primary/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" /> Store Setup & Launch Guide
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Welcome to your EV Parts store administration. Follow these steps to prepare your catalog for public launch.
+                </p>
+              </div>
+              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
+                Initial Setup
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">1</span>
+                    Store Settings
+                  </div>
+                  <h4 className="text-sm font-semibold">Configure WhatsApp & Currency</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Ensure your official WhatsApp order receiving number and default trading currency are configured.
+                  </p>
+                </div>
+                <Link href="/admin/settings" className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
+                    <Settings className="h-3.5 w-3.5" /> Configure Settings
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">2</span>
+                    Categories ({totalCategories ?? 0} created)
+                  </div>
+                  <h4 className="text-sm font-semibold">Organize Component Groups</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Create parts categories (e.g., Motors, Controllers, Batteries) so customers can filter your catalog easily.
+                  </p>
+                </div>
+                <Link href="/admin/categories" className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
+                    <FolderTree className="h-3.5 w-3.5" /> Manage Categories
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="space-y-2 p-4 rounded-lg bg-card border border-border/80 shadow-xs flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                    <span className="flex h-5 w-5 rounded-full bg-primary/10 items-center justify-center text-primary font-bold">3</span>
+                    Add First Product
+                  </div>
+                  <h4 className="text-sm font-semibold">Upload Image, MOQ & Pricing</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Add your genuine EV components with technical specs, upload product imagery, set wholesale MOQ, and publish.
+                  </p>
+                </div>
+                <Link href="/admin/products/new" className="pt-2">
+                  <Button size="sm" className="w-full text-xs gap-1.5 shadow-sm">
+                    <Plus className="h-3.5 w-3.5" /> Create Product
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Orders Section */}
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">

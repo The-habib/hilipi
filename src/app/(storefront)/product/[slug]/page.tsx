@@ -24,7 +24,7 @@ interface ProductPageProps {
   }>;
 }
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -38,10 +38,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     .single();
 
   if (!product) {
-    return {
-      title: "Product Not Found",
-      description: "Requested electric vehicle spare part is unavailable.",
-    };
+    notFound();
   }
 
   const desc = product.description || `Order ${product.name} commercial-grade EV hardware with direct WhatsApp confirmation.`;

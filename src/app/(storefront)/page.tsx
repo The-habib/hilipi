@@ -10,12 +10,12 @@ import {
   ShieldCheck,
   Truck,
   MessageSquare,
-  Cpu,
   Boxes,
   CheckCircle2,
+  Package,
 } from "lucide-react";
 
-export const revalidate = 60; // ISR cache for 60 seconds
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -52,9 +52,12 @@ export default async function HomePage() {
     .single();
 
   const currency = settings?.currency || "USD";
-  const storeName = settings?.store_name || "EV Spare Parts Direct";
+  const storeName = settings?.store_name || "EV Spare Parts Store";
   const whatsappNumber = settings?.whatsapp_number;
   const cleanPhone = whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, "") : null;
+
+  // Hero spotlight item: dynamically use the first featured or latest product if one exists in the database
+  const spotlightProduct = featuredProducts?.[0] || latestProducts?.[0] || null;
 
   return (
     <div className="space-y-16 pb-16">
@@ -66,15 +69,15 @@ export default async function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 <Zap className="h-3.5 w-3.5 fill-current" />
-                <span>Commercial-Grade EV Components</span>
+                <span>Commercial Electric Vehicle Spares</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
-                Electric Vehicle <span className="text-primary">Motors, Controllers</span> & Drivetrain Spares.
+              <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
+                Electric Vehicle <span className="text-primary block sm:inline">Motors, Controllers</span> & Replacement Hardware.
               </h1>
 
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                Wholesale and replacement parts for EV fleet operators, conversion workshops, and repair centers. Build your order list online and confirm stock directly via WhatsApp.
+              <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                Commercial-grade spares for EV fleet operators, conversion workshops, and repair technicians. Select components online and confirm stock directly via WhatsApp.
               </p>
 
               {/* Action Buttons */}
@@ -99,10 +102,10 @@ export default async function HomePage() {
               </div>
 
               {/* Value highlights */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t text-xs text-muted-foreground">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                  <span>Wholesale MOQ Limits</span>
+                  <span>Wholesale MOQ Parameters</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -117,49 +120,103 @@ export default async function HomePage() {
 
             {/* Right Visual Component Card */}
             <div className="lg:col-span-5">
-              <Card className="border shadow-md bg-card overflow-hidden">
-                <div className="p-4 bg-muted/40 border-b flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Catalog Spotlight
-                    </span>
-                  </div>
-                  <Badge variant="success" className="text-[10px]">Active Stock</Badge>
-                </div>
-
-                <div className="p-6 space-y-4">
-                  <div className="aspect-video rounded-lg border bg-muted/30 flex items-center justify-center p-4">
-                    <Zap className="h-16 w-16 text-primary/40" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <span className="text-xs text-primary font-semibold uppercase tracking-wider">
-                      Drivetrain Motor
-                    </span>
-                    <h2 className="font-bold text-base text-foreground">
-                      72V 3000W BLDC Hub Motor Assembly
-                    </h2>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      SKU: EVM-723000-HUB • MOQ: 1 PIECE
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t text-xs">
-                    <div>
-                      <span className="text-muted-foreground block">Wholesale Rate</span>
-                      <span className="text-lg font-extrabold text-foreground">
-                        {formatCurrency(499.00, currency)}
+              {spotlightProduct ? (
+                <Card className="border shadow-md bg-card overflow-hidden">
+                  <div className="p-4 bg-muted/40 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Featured Component
                       </span>
                     </div>
-                    <Link href="/product/72v-3000w-bldc-hub-motor">
-                      <Button size="sm" variant="outline" className="gap-1 text-xs">
-                        View Details <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    </Link>
+                    <Badge variant={spotlightProduct.stock_quantity > 0 ? "success" : "secondary"} className="text-[10px]">
+                      {spotlightProduct.stock_quantity > 0 ? "In Stock" : "Catalog Item"}
+                    </Badge>
                   </div>
-                </div>
-              </Card>
+
+                  <div className="p-6 space-y-4">
+                    <div className="aspect-video rounded-lg border bg-muted/30 flex items-center justify-center p-4">
+                      {spotlightProduct.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={spotlightProduct.image_url}
+                          alt={spotlightProduct.name}
+                          className="h-full object-contain"
+                        />
+                      ) : (
+                        <Zap className="h-16 w-16 text-primary/40" />
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      {spotlightProduct.categories && (
+                        <span className="text-xs text-primary font-semibold uppercase tracking-wider block">
+                          {spotlightProduct.categories.name}
+                        </span>
+                      )}
+                      <h2 className="font-bold text-base text-foreground line-clamp-1">
+                        {spotlightProduct.name}
+                      </h2>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        SKU: {spotlightProduct.sku} • MOQ: {spotlightProduct.minimum_quantity} {spotlightProduct.unit}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">Wholesale Rate</span>
+                        <span className="text-lg font-extrabold text-foreground">
+                          {formatCurrency(Number(spotlightProduct.price), currency)}
+                        </span>
+                      </div>
+                      <Link href={`/product/${spotlightProduct.slug}`}>
+                        <Button size="sm" variant="outline" className="gap-1 text-xs">
+                          View Details <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
+              ) : (
+                /* Neutral Clean Procurement Card if catalog is empty */
+                <Card className="border shadow-md bg-card overflow-hidden">
+                  <div className="p-4 bg-muted/40 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-primary inline-block" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Parts Procurement
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">Direct Desk</Badge>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    <div className="aspect-video rounded-lg border bg-muted/30 flex flex-col items-center justify-center p-6 text-center space-y-2">
+                      <Boxes className="h-12 w-12 text-primary/40" />
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        B2B Bill of Materials Ordering
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <h2 className="font-bold text-base text-foreground">
+                        Wholesale & Fleet Dispatch
+                      </h2>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Add items from our catalog to compile your bill of materials. Orders are submitted directly to our dispatch desk via WhatsApp for stock verification.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t flex items-center justify-between">
+                      <Link href="/shop" className="w-full">
+                        <Button size="sm" variant="outline" className="w-full gap-1 text-xs">
+                          Browse Parts Catalog <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
           </div>
         </div>
@@ -171,7 +228,7 @@ export default async function HomePage() {
           <div className="max-w-xl">
             <h2 className="text-xl font-bold tracking-tight text-foreground">How WhatsApp Ordering Works</h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Simple 3-step procurement designed for quick turnarounds and trade orders.
+              Streamlined 3-step procurement designed for quick turnarounds and commercial trade orders.
             </p>
           </div>
 
@@ -182,7 +239,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-semibold text-sm text-foreground">Select Hardware & Quantities</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Browse our verified parts catalog. Add required items to your cart respecting minimum wholesale order parameters (MOQ).
+                Browse our parts catalog. Add required items to your cart respecting minimum wholesale order parameters (MOQ).
               </p>
             </div>
 
@@ -192,7 +249,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-semibold text-sm text-foreground">Submit Delivery Coordinates</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Provide your workshop address and vehicle notes. Our server generates a unique order reference number.
+                Provide your workshop address and vehicle notes. Our server logs the order and generates a unique reference number.
               </p>
             </div>
 
@@ -202,7 +259,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-semibold text-sm text-foreground">Instant WhatsApp Confirmation</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Click to open your complete order specification directly in WhatsApp. Our team confirms warehouse stock and dispatch timing.
+                Click to open your complete order specification directly in WhatsApp. Our team confirms warehouse availability and dispatch timing.
               </p>
             </div>
           </div>
@@ -210,18 +267,18 @@ export default async function HomePage() {
       </section>
 
       {/* Browse by Category */}
-      {categories && categories.length > 0 && (
-        <section className="container space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Browse by Category</h2>
-              <p className="text-sm text-muted-foreground">Components organized by system architecture</p>
-            </div>
-            <Link href="/shop" className="text-sm font-medium text-primary hover:underline">
-              View all
-            </Link>
+      <section className="container space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Browse by Category</h2>
+            <p className="text-sm text-muted-foreground">Components organized by system architecture</p>
           </div>
+          <Link href="/shop" className="text-sm font-medium text-primary hover:underline">
+            View all
+          </Link>
+        </div>
 
+        {categories && categories.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link key={cat.id} href={`/category/${cat.slug}`} className="group">
@@ -238,16 +295,22 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <Card className="p-8 text-center bg-card border-dashed">
+            <p className="text-xs text-muted-foreground">
+              Categories are being configured. Visit the full catalog to browse available components.
+            </p>
+          </Card>
+        )}
+      </section>
 
       {/* Featured Products */}
-      {featuredProducts && featuredProducts.length > 0 && (
+      {featuredProducts && featuredProducts.length > 0 ? (
         <section className="container space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-foreground">Featured Components</h2>
-              <p className="text-sm text-muted-foreground">Popular high-demand replacement units and conversion spares</p>
+              <p className="text-sm text-muted-foreground">Highlighted replacement units and conversion spares</p>
             </div>
             <Link href="/shop" className="text-sm font-medium text-primary hover:underline">
               View catalog
@@ -311,15 +374,15 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Latest Products */}
-      {latestProducts && latestProducts.length > 0 && (
+      {latestProducts && latestProducts.length > 0 ? (
         <section className="container space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Latest Additions</h2>
-              <p className="text-sm text-muted-foreground">Recently added parts and replacement hardware</p>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Catalog Inventory</h2>
+              <p className="text-sm text-muted-foreground">Available replacement parts and hardware</p>
             </div>
             <Link href="/shop" className="text-sm font-medium text-primary hover:underline">
               See all parts
@@ -383,7 +446,7 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Direct WhatsApp Inquiry Banner */}
       {cleanPhone && (
@@ -395,7 +458,7 @@ export default async function HomePage() {
                   Need a Specific Part or Custom Wholesale Pack?
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Send part numbers, voltage specifications, or photos directly to our dispatch desk on WhatsApp for instant identification.
+                  Send part numbers, voltage specifications, or photos directly to our dispatch desk on WhatsApp for prompt verification.
                 </p>
               </div>
               <a

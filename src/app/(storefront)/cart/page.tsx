@@ -225,7 +225,7 @@ export default function CartPage() {
                     required
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="e.g. Apex Fleet Operations"
+                    placeholder="e.g. Your Business or Name"
                     className="text-xs h-9"
                   />
                 </div>
@@ -265,7 +265,7 @@ export default function CartPage() {
                   <Input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="e.g. 72V 3000W BLDC conversion"
+                    placeholder="e.g. Vehicle model or specific requirements"
                     className="text-xs h-9"
                   />
                 </div>

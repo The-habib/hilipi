@@ -13,7 +13,7 @@ interface CategoryPageProps {
   }>;
 }
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -27,10 +27,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     .single();
 
   if (!category) {
-    return {
-      title: "Category Not Found",
-      description: "Requested electric vehicle spare parts category is unavailable.",
-    };
+    notFound();
   }
 
   const desc = category.description || `Browse ${category.name} EV spare parts, conversion hardware, and components with wholesale pricing.`;

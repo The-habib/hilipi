@@ -33,10 +33,18 @@ export default async function AdminLayout({
     }
   }
 
+  if (pathname === "/admin/login") {
+    return (
+      <main className="min-h-screen bg-muted/20 flex flex-col items-center justify-center p-4 w-full">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-muted/20">
       <AdminNav userEmail={user?.email} />
-      <main className="container py-8">{children}</main>
+      <main className="container px-4 sm:px-6 py-6 sm:py-8">{children}</main>
     </div>
   );
 }

@@ -37,13 +37,13 @@ export function Header({
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-bold text-base sm:text-lg tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
+            className="flex items-center gap-2 font-bold text-sm sm:text-lg tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
             aria-label={`${storeName} Home`}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm shrink-0">
-              <Zap className="h-5 w-5 fill-current" />
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm shrink-0">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
             </div>
-            <span className="font-extrabold tracking-tight truncate max-w-[170px] sm:max-w-none text-foreground">
+            <span className="font-extrabold tracking-tight truncate max-w-[130px] sm:max-w-none text-foreground">
               {storeName}
             </span>
           </Link>
@@ -70,7 +70,7 @@ export function Header({
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Link href="/shop" aria-label="Search catalog">
             <Button
               variant="ghost"
@@ -88,20 +88,21 @@ export function Header({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Contact us on WhatsApp"
+              className="hidden sm:inline-flex"
             >
               <Button
                 variant="whatsapp"
                 size="sm"
-                className="gap-1.5 text-xs h-9 px-2.5 sm:px-3 font-medium"
+                className="gap-1.5 text-xs h-9 px-3 font-medium"
               >
                 <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-                <span className="hidden sm:inline">WhatsApp</span>
+                <span>WhatsApp</span>
               </Button>
             </a>
           )}
 
           <Link href="/cart" aria-label={`View shopping cart with ${itemCount} items`}>
-            <Button variant="outline" size="sm" className="relative gap-1.5 h-9 px-3">
+            <Button variant="outline" size="sm" className="relative gap-1.5 h-9 px-2.5 sm:px-3">
               <ShoppingBag className="h-4 w-4 text-foreground" />
               <span className="hidden sm:inline text-xs font-semibold">Cart</span>
               {itemCount > 0 && (
@@ -177,6 +178,21 @@ export function Header({
             >
               <ShieldCheck className="h-4 w-4 text-primary" /> Staff Admin Portal
             </Link>
+
+            {cleanPhone && (
+              <div className="pt-2 border-t">
+                <a
+                  href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(storeName)},%20I%20have%20an%20inquiry%20regarding%20EV%20spare%20parts.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button variant="whatsapp" className="w-full gap-2 text-xs h-9 font-semibold shadow-sm">
+                    <MessageSquare className="h-4 w-4" /> Order / Inquire on WhatsApp
+                  </Button>
+                </a>
+              </div>
+            )}
           </nav>
         </div>
       )}

@@ -76,25 +76,25 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
             Parts Catalog
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl break-words">
             Browse genuine commercial EV spares, motors, controllers, and conversion kits
           </p>
         </div>
 
         {/* Search form */}
         <form method="GET" action="/shop" className="flex items-center gap-2 max-w-sm w-full">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               name="q"
               defaultValue={query}
-              placeholder="Search by part name or SKU..."
-              className="pl-9 text-xs h-9"
+              placeholder="Search parts or SKU..."
+              className="pl-9 text-xs h-9 w-full"
             />
           </div>
           {categorySlug && <input type="hidden" name="category" value={categorySlug} />}
           {sort && <input type="hidden" name="sort" value={sort} />}
-          <Button type="submit" size="sm" className="h-9 font-medium">
+          <Button type="submit" size="sm" className="h-9 px-3 shrink-0 font-medium">
             Search
           </Button>
         </form>

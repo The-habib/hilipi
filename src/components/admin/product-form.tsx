@@ -269,7 +269,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                   required
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="e.g. 72V 3000W BLDC Hub Motor"
+                  placeholder="e.g. Brushless DC Motor"
                 />
               </div>
 
@@ -282,7 +282,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                     required
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    placeholder="72v-3000w-bldc-hub-motor"
+                    placeholder="bldc-motor-part"
                   />
                 </div>
 
@@ -294,7 +294,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                     required
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    placeholder="EVM-723000-HUB"
+                    placeholder="MOT-001"
                   />
                 </div>
               </div>
@@ -414,7 +414,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                 rows={5}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={"Rated Voltage: 72V\nPeak Power: 3000W\nBrake Compatibility: Disc Brake\nConnector Type: Waterproof 9-Pin"}
+                placeholder={"Specification: Value\nRating / Capacity: Value\nWarranty: Standard"}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-sm font-mono transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
               />
               <p className="text-[11px] text-muted-foreground">
